@@ -1,8 +1,11 @@
 library;
-// 
+
+//
 // Flutter packages
 //
 import 'package:flutter/material.dart';
+import 'package:launch_searcher/models/global_data.dart';
+import 'package:launch_searcher/screens_widgets/home_screen.dart';
 //
 // pub.dev packages
 //
@@ -17,14 +20,21 @@ void main() async {
   //
   WidgetsFlutterBinding.ensureInitialized();
   await windowManager.ensureInitialized();
-
+  //
+  // load the pywal colors
+  //
+  await GlobalData().loadWalTheme();
+  //
+  // set the window options
+  //
   WindowOptions windowOptions = WindowOptions(
     size: Size(800, 600),
     center: true,
-    backgroundColor: Colors.transparent,
+    backgroundColor: GlobalData().walColors!.special.background,
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.hidden,
   );
+
   windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.show();
     await windowManager.focus();
@@ -40,19 +50,7 @@ class LaunchSearcherApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Launch Searcher App',
-      theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue), useMaterial3: true),
-      home: const HomePage(),
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(backgroundColor: Theme.of(context).colorScheme.inversePrimary, title: Text("Launch Searcher App")),
+      home: HomePage(),
     );
   }
 }
