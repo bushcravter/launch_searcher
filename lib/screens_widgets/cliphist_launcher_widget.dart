@@ -11,11 +11,12 @@ import 'package:flutter/services.dart';
 //
 // internal packages
 //
-import 'package:launch_searcher/models/contact_email_entry.dart';
+import 'package:launch_searcher/models/cliphist_entry.dart';
+import 'package:launch_searcher/models/contact_telephone_entry.dart';
 import 'package:launch_searcher/models/global_data.dart';
 
-class MailLauncherWidget extends StatefulWidget {
-  const MailLauncherWidget({super.key, required this.searchTerm, this.selectedIndex = -1});
+class CliphistLauncherWidget extends StatefulWidget {
+  const CliphistLauncherWidget({super.key, required this.searchTerm, this.selectedIndex = -1});
 
   //
   // input of the search term
@@ -26,16 +27,16 @@ class MailLauncherWidget extends StatefulWidget {
   //
   final int selectedIndex;
   @override
-  State<MailLauncherWidget> createState() => _MailLauncherWidgetState();
+  State<CliphistLauncherWidget> createState() => _CliphistLauncherWidgetState();
 }
 
-class _MailLauncherWidgetState extends State<MailLauncherWidget> {
-  late Future<List<ContactEmailEntry>> _contactsFuture;
+class _CliphistLauncherWidgetState extends State<CliphistLauncherWidget> {
+  late Future<List<CliphistEntry>> _cliphistFuture;
 
   @override
   void initState() {
     super.initState();
-    _contactsFuture = ContactEmailEntry.fromVcfFile('/home/volker/Dokumente/Adressen/contacts.vcf');
+    _cliphistFuture = CliphistEntry.readHistory();
   }
 
   //
@@ -54,8 +55,8 @@ class _MailLauncherWidgetState extends State<MailLauncherWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<ContactEmailEntry>>(
-      future: _contactsFuture,
+    return FutureBuilder<List<CliphistEntry>>(
+      future: _cliphistFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -64,19 +65,18 @@ class _MailLauncherWidgetState extends State<MailLauncherWidget> {
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const Center(child: Text('Keine Anwendungen gefunden.'));
         }
-
-        globalData.contactEmailEntries = snapshot.data!;
-        globalData.contactEmailEntries = ContactEmailEntry.filterContactEntries(globalData.contactEmailEntries, widget.searchTerm);
+        globalData.cliphistEntries = snapshot.data!;
+        globalData.cliphistEntries = CliphistEntry.filterEntries(globalData.cliphistEntries, widget.searchTerm);
         return KeyboardListener(
           focusNode: FocusNode(),
           onKeyEvent: _handleKeyEvent,
           child: ListView.builder(
-            itemCount: globalData.contactEmailEntries.length,
+           itemCount: globalData.cliphistEntries.length,
             itemBuilder: (context, index) {
               //
               // set the selected contact entry
               //
-              globalData.selectedContactEmailEntry = globalData.contactEmailEntries[index];
+              globalData.selectedCliphistEntry= globalData.cliphistEntries[index];
               //
               // return the list tiles
               //
@@ -89,19 +89,15 @@ class _MailLauncherWidgetState extends State<MailLauncherWidget> {
                 tileColor: GlobalData().walColors!.special.background,
                 splashColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
                 title: Text(
-                  globalData.contactEmailEntries[index].name,
+                  globalData.cliphistEntries[index].content,
                   style: TextStyle(color: GlobalData().walColors!.special.foreground, fontWeight: FontWeight.bold),
-                ),
-                subtitle: Text(
-                  globalData.contactEmailEntries[index].emailAddress ?? '',
-                  style: TextStyle(color: GlobalData().walColors!.special.foreground),
                 ),
                 onTap: () async {
                   //
                   // start the app
                   //
-                  await globalData.contactEmailEntries[index].launch();
-
+                  await globalData.cliphistEntries[index].launch();
+          
                   //
                   // close the LaunchSearcher
                   //

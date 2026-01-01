@@ -6,6 +6,7 @@ library;
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:launch_searcher/models/cliphist_entry.dart';
 import 'package:launch_searcher/models/contact_email_entry.dart';
 import 'package:launch_searcher/models/contact_telephone_entry.dart';
 import 'package:launch_searcher/models/desktop_entry.dart';
@@ -65,6 +66,11 @@ class GlobalData {
   ContactTelephoneEntry? selectedContactTelephoneEntry;
   List<ContactEmailEntry> contactEmailEntries = [];
   ContactEmailEntry? selectedContactEmailEntry;
+  //
+  // cliphistory data
+  //
+  List<CliphistEntry> cliphistEntries = [];
+  CliphistEntry? selectedCliphistEntry; 
 
   /// Lädt das Pywal-Farbthema aus der `colors.json`-Datei.
   ///

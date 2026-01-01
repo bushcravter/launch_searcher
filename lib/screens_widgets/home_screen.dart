@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 //
 import 'package:launch_searcher/models/global_data.dart';
 import 'package:launch_searcher/screens_widgets/app_launcher_widget.dart';
+import 'package:launch_searcher/screens_widgets/cliphist_launcher_widget.dart';
 import 'package:launch_searcher/screens_widgets/mail_launcher_widget.dart';
 import 'package:launch_searcher/screens_widgets/prefixed_search_field.dart';
 import 'package:launch_searcher/screens_widgets/telephone_launcher_widget.dart';
@@ -65,12 +66,17 @@ class _HomePageState extends State<HomePage> {
         await globalData.contactTelephoneEntries[0].launch();
         exit(0);
       case SearchProvider.mail:
-         //
+        //
         // start the first email and close the launchSearcher
         //
         await globalData.contactEmailEntries[0].launch();
         exit(0);
       case SearchProvider.clipboard:
+        //
+        // start the cliphist entry and close the launchSearcher
+        //
+        await globalData.cliphistEntries[0].launch();
+        exit(0);
       case SearchProvider.emoji:
         break;
     }
@@ -116,7 +122,10 @@ class _HomePageState extends State<HomePage> {
                 SearchProvider.mail: (term) {
                   return MailLauncherWidget(searchTerm: term);
                 },
-              },
+                 SearchProvider.clipboard: (term) {
+                  return CliphistLauncherWidget(searchTerm: term);
+                },
+             },
               currentProvider: _inputProvider,
               searchTerm: _inputSearchString,
             ),
