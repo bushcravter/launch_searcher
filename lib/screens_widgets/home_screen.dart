@@ -28,10 +28,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   //
-  // focus for search input and search resulta
-  //
-  bool searchResultFocusNode = false;
-  //
   // search provider from PrefixedSearchField
   //
   SearchProvider _inputProvider = SearchProvider.app;
@@ -39,6 +35,14 @@ class _HomePageState extends State<HomePage> {
   // search string from PrefixedSearchField
   //
   String _inputSearchString = '';
+  //
+  // app searcher focus node
+  //
+  bool searcherFocusNode = false;
+  //
+  // selected index of the result
+  //
+  int selectedIndex = -1;
 
   @override
   void initState() {
@@ -82,6 +86,14 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  //
+  // focus for result
+  //
+  void _focusResult() {
+    searcherFocusNode = !searcherFocusNode;
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     //
@@ -97,6 +109,7 @@ class _HomePageState extends State<HomePage> {
         children: [
           PrefixedSearchField(
             onSubmitted: _searchSubmitted,
+            focusResult: _focusResult,
             onSearchChanged: (SearchProvider provider, String searchTerm) {
               //
               // input search provider
@@ -114,18 +127,18 @@ class _HomePageState extends State<HomePage> {
             child: SearchProviderContent(
               widgetBuilders: {
                 SearchProvider.app: (term) {
-                  return AppLauncherWidget(searchTerm: term);
+                  return AppLauncherWidget(searchTerm: term, appSearcherFocus: searcherFocusNode);
                 },
                 SearchProvider.telephone: (term) {
-                  return TelephoneLauncherWidget(searchTerm: term);
+                  return TelephoneLauncherWidget(searchTerm: term, telephoneSearcherFocus: searcherFocusNode);
                 },
                 SearchProvider.mail: (term) {
-                  return MailLauncherWidget(searchTerm: term);
+                  return MailLauncherWidget(searchTerm: term, mailSearcherFocus: searcherFocusNode);
                 },
-                 SearchProvider.clipboard: (term) {
-                  return CliphistLauncherWidget(searchTerm: term);
+                SearchProvider.clipboard: (term) {
+                  return CliphistLauncherWidget(searchTerm: term, clipSearcherFocus: searcherFocusNode);
                 },
-             },
+              },
               currentProvider: _inputProvider,
               searchTerm: _inputSearchString,
             ),

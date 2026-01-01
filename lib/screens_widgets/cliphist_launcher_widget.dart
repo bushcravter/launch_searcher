@@ -16,22 +16,27 @@ import 'package:launch_searcher/models/cliphist_entry.dart';
 import 'package:launch_searcher/models/global_data.dart';
 
 class CliphistLauncherWidget extends StatefulWidget {
-  const CliphistLauncherWidget({super.key, required this.searchTerm, this.selectedIndex = -1});
+  const CliphistLauncherWidget({super.key, required this.searchTerm, this.clipSearcherFocus = false});
 
   //
   // input of the search term
   //
   final String searchTerm;
   //
-  // selected index
+  // focus for result
   //
-  final int selectedIndex;
+  final clipSearcherFocus;
+
   @override
   State<CliphistLauncherWidget> createState() => _CliphistLauncherWidgetState();
 }
 
 class _CliphistLauncherWidgetState extends State<CliphistLauncherWidget> {
   late Future<List<CliphistEntry>> _cliphistFuture;
+  //
+  // focus  for result set
+  //
+  final List<FocusNode> listFocusNodes = [];
 
   @override
   void initState() {
@@ -67,6 +72,12 @@ class _CliphistLauncherWidgetState extends State<CliphistLauncherWidget> {
         }
         globalData.cliphistEntries = snapshot.data!;
         globalData.cliphistEntries = CliphistEntry.filterEntries(globalData.cliphistEntries, widget.searchTerm);
+        for (int kindex = 0; kindex < globalData.cliphistEntries.length; kindex++) {
+          listFocusNodes.add(FocusNode());
+        }
+        if (widget.clipSearcherFocus) {
+          listFocusNodes[0].requestFocus();
+        }
         return KeyboardListener(
           focusNode: FocusNode(),
           onKeyEvent: _handleKeyEvent,
@@ -81,7 +92,8 @@ class _CliphistLauncherWidgetState extends State<CliphistLauncherWidget> {
               // return the list tiles
               //
               return ListTile(
-                selected: index == widget.selectedIndex,
+                focusNode: listFocusNodes[index],
+                selected: listFocusNodes[index].hasFocus,
                 focusColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
                 selectedTileColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
                 selectedColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),

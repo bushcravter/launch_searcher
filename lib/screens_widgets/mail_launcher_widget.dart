@@ -15,7 +15,7 @@ import 'package:launch_searcher/models/contact_email_entry.dart';
 import 'package:launch_searcher/models/global_data.dart';
 
 class MailLauncherWidget extends StatefulWidget {
-  const MailLauncherWidget({super.key, required this.searchTerm, this.selectedIndex = -1});
+  const MailLauncherWidget({super.key, required this.searchTerm, this.mailSearcherFocus = false});
 
   //
   // input of the search term
@@ -24,13 +24,17 @@ class MailLauncherWidget extends StatefulWidget {
   //
   // selected index
   //
-  final int selectedIndex;
+  final bool mailSearcherFocus;
   @override
   State<MailLauncherWidget> createState() => _MailLauncherWidgetState();
 }
 
 class _MailLauncherWidgetState extends State<MailLauncherWidget> {
   late Future<List<ContactEmailEntry>> _contactsFuture;
+  //
+  // focus  for result set
+  //
+  final List<FocusNode> listFocusNodes = [];
 
   @override
   void initState() {
@@ -67,7 +71,13 @@ class _MailLauncherWidgetState extends State<MailLauncherWidget> {
 
         globalData.contactEmailEntries = snapshot.data!;
         globalData.contactEmailEntries = ContactEmailEntry.filterContactEntries(globalData.contactEmailEntries, widget.searchTerm);
-        return KeyboardListener(
+         for (int kindex = 0; kindex < globalData.contactEmailEntries.length; kindex++) {
+          listFocusNodes.add(FocusNode());
+        }
+        if (widget.mailSearcherFocus) {
+          listFocusNodes[0].requestFocus();
+        }
+       return KeyboardListener(
           focusNode: FocusNode(),
           onKeyEvent: _handleKeyEvent,
           child: ListView.builder(
@@ -81,7 +91,8 @@ class _MailLauncherWidgetState extends State<MailLauncherWidget> {
               // return the list tiles
               //
               return ListTile(
-                selected: index == widget.selectedIndex,
+                focusNode: listFocusNodes[index],
+                selected: listFocusNodes[index].hasFocus,
                 focusColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
                 selectedTileColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
                 selectedColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),

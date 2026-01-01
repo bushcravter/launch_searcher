@@ -12,20 +12,26 @@ import 'package:launch_searcher/models/global_data.dart';
 import 'package:launch_searcher/utils/desktop_app_finder.dart';
 
 class AppLauncherWidget extends StatefulWidget {
-  const AppLauncherWidget({super.key, required this.searchTerm, this.selectedIndex = -1});
+  const AppLauncherWidget({super.key, required this.searchTerm,  this.appSearcherFocus = false});
   //
   // input of the search term
   //
   final String searchTerm;
+
   //
-  // selected index
+  // bool focus 
   //
-  final int selectedIndex;
+  final appSearcherFocus;
+
   @override
   State<AppLauncherWidget> createState() => _AppLauncherWidgetState();
 }
 
 class _AppLauncherWidgetState extends State<AppLauncherWidget> {
+  //
+  // focus  for result set
+  //
+  final List<FocusNode> listFocusNodes = [];
   //
   // list of all found apps
   //
@@ -77,6 +83,12 @@ class _AppLauncherWidgetState extends State<AppLauncherWidget> {
         //
         globalData.desktopEntries = snapshot.data!;
         globalData.desktopEntries = DesktopEntry.filterDesktopEntries(globalData.desktopEntries, widget.searchTerm);
+        for (int kindex = 0; kindex < globalData.desktopEntries.length; kindex++) {
+          listFocusNodes.add(FocusNode());
+        }
+        if (widget.appSearcherFocus) {
+          listFocusNodes[0].requestFocus();
+        }
         return KeyboardListener(
           focusNode: FocusNode(),
           onKeyEvent: _handleKeyEvent,
@@ -91,7 +103,8 @@ class _AppLauncherWidgetState extends State<AppLauncherWidget> {
               // return the list tiles
               //
               return ListTile(
-                selected: index == widget.selectedIndex,
+                focusNode: listFocusNodes[index],
+                selected: listFocusNodes[index].hasFocus,
                 focusColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
                 selectedTileColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
                 selectedColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),

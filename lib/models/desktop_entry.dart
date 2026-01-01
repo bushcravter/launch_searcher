@@ -255,6 +255,10 @@ class DesktopEntry {
       // Prüfe, ob der Name der App den Suchbegriff enthält (case-insensitive)
       return app.name.toLowerCase().contains(lowerCaseSearchTerm);
     }).toList(); // Wichtig: .toList() um ein neues List-Objekt zu erhalten
+    // 
+    // sortiere die Liste
+    //
+    filteredApps.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
     return filteredApps;
   }
 }

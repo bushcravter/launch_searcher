@@ -36,7 +36,10 @@ class PrefixedSearchField extends StatefulWidget {
   /// mit Enter Aktion durchführen
   final Function(String)? onSubmitted;
 
-  const PrefixedSearchField({super.key, required this.onSearchChanged, this.decoration, this.focusNode, this.onSubmitted});
+  // mit Down in das Result set wechseln
+  final Function? focusResult;
+
+  const PrefixedSearchField({super.key, required this.onSearchChanged, this.decoration, this.focusNode, this.onSubmitted, this.focusResult});
 
   @override
   State<PrefixedSearchField> createState() => _PrefixedSearchFieldState();
@@ -98,6 +101,13 @@ class _PrefixedSearchFieldState extends State<PrefixedSearchField> {
       //
       if (event.logicalKey == LogicalKeyboardKey.escape) {
         exit(0);
+        // 
+        // focus the results if pressed down
+        //
+      } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+        if (widget.focusResult != null) {
+          widget.focusResult!();
+        }
       }
     }
   }

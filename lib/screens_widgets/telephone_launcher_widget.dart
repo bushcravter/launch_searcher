@@ -10,22 +10,26 @@ import 'package:launch_searcher/models/contact_telephone_entry.dart';
 import 'package:launch_searcher/models/global_data.dart';
 
 class TelephoneLauncherWidget extends StatefulWidget {
-  const TelephoneLauncherWidget({super.key, required this.searchTerm, this.selectedIndex = -1});
+  const TelephoneLauncherWidget({super.key, required this.searchTerm, this.telephoneSearcherFocus = false});
 
   //
   // input of the search term
   //
   final String searchTerm;
   //
-  // selected index
+  // focus result 
   //
-  final int selectedIndex;
+  final bool telephoneSearcherFocus;
   @override
   State<TelephoneLauncherWidget> createState() => _TelephoneLauncherWidgetState();
 }
 
 class _TelephoneLauncherWidgetState extends State<TelephoneLauncherWidget> {
   late Future<List<ContactTelephoneEntry>> _contactsFuture;
+  //
+  // focus  for result set
+  //
+  final List<FocusNode> listFocusNodes = [];
 
   @override
   void initState() {
@@ -61,7 +65,13 @@ class _TelephoneLauncherWidgetState extends State<TelephoneLauncherWidget> {
         }
         globalData.contactTelephoneEntries = snapshot.data!;
         globalData.contactTelephoneEntries = ContactTelephoneEntry.filterContactEntries(globalData.contactTelephoneEntries, widget.searchTerm);
-        return KeyboardListener(
+         for (int kindex = 0; kindex < globalData.contactTelephoneEntries.length; kindex++) {
+          listFocusNodes.add(FocusNode());
+        }
+        if (widget.telephoneSearcherFocus) {
+          listFocusNodes[0].requestFocus();
+        }
+       return KeyboardListener(
           focusNode: FocusNode(),
           onKeyEvent: _handleKeyEvent,
           child: ListView.builder(
@@ -75,7 +85,8 @@ class _TelephoneLauncherWidgetState extends State<TelephoneLauncherWidget> {
               // return the list tiles
               //
               return ListTile(
-                selected: index == widget.selectedIndex,
+                focusNode: listFocusNodes[index],
+                selected: listFocusNodes[index].hasFocus,
                 focusColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
                 selectedTileColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
                 selectedColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
