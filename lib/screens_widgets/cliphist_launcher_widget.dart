@@ -1,5 +1,6 @@
 library;
-// 
+
+//
 // Flutter packages
 //
 import 'dart:io';
@@ -12,7 +13,6 @@ import 'package:flutter/services.dart';
 // internal packages
 //
 import 'package:launch_searcher/models/cliphist_entry.dart';
-import 'package:launch_searcher/models/contact_telephone_entry.dart';
 import 'package:launch_searcher/models/global_data.dart';
 
 class CliphistLauncherWidget extends StatefulWidget {
@@ -71,12 +71,12 @@ class _CliphistLauncherWidgetState extends State<CliphistLauncherWidget> {
           focusNode: FocusNode(),
           onKeyEvent: _handleKeyEvent,
           child: ListView.builder(
-           itemCount: globalData.cliphistEntries.length,
+            itemCount: globalData.cliphistEntries.length,
             itemBuilder: (context, index) {
               //
               // set the selected contact entry
               //
-              globalData.selectedCliphistEntry= globalData.cliphistEntries[index];
+              globalData.selectedCliphistEntry = globalData.cliphistEntries[index];
               //
               // return the list tiles
               //
@@ -97,7 +97,6 @@ class _CliphistLauncherWidgetState extends State<CliphistLauncherWidget> {
                   // start the app
                   //
                   await globalData.cliphistEntries[index].launch();
-          
                   //
                   // close the LaunchSearcher
                   //

@@ -3,6 +3,7 @@ library;
 //
 // Flutter packages
 //
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 
@@ -64,7 +65,7 @@ class CliphistEntry {
       return lines.map((line) => CliphistEntry.fromLine(line)).toList();
     } catch (e) {
       // Gib den Fehler weiter und logge ihn für die Fehlersuche.
-      print('Fehler beim Lesen der Clipboard-Historie: $e');
+      debugPrint('Fehler beim Lesen der Clipboard-Historie: $e');
       rethrow;
     }
   }
@@ -80,29 +81,59 @@ class CliphistEntry {
   // Zwischenablagen-API zu nutzen. Die `Process.start`-Methode bietet hier
   /// eine direktere Interaktion mit den nativen System-Clipboard-Tools, was
   /// im Kontext von `cliphist` oft bevorzugt wird.
-  Future<void> launch() async {
-    // Stelle sicher, dass eine ID vorhanden ist.
-    if (cliphistCode.isEmpty) {
-      throw Exception('CliphistEntry hat keine ID zum Dekodieren.');
-    }
+   Future<void> launch() async {
+     try {
+       //
+       // Schritt 1: Den zu kopierenden String von `cliphist` erhalten.
+       // Dieser Teil mit Process.run war bereits korrekt.
+       //
+       final cliphistResult = await Process.run('cliphist', ['decode', cliphistCode]);
 
-    try {
-      ProcessResult result;
-      //
-      // zuerst mit der Ausgabe von cliphist decode den zu kopierenden String bekommen
-      //
-      result = await Process.run('cliphist', ['decode', cliphistCode]);
-      final copyString = result.stdout as String;
-      //
-      // copy the string
-      //
-      result = await Process.run('wl-copy', [copyString]);
+       if (cliphistResult.exitCode != 0) {
+         debugPrint('Fehler: cliphist fehlgeschlagen mit Exit-Code ${cliphistResult.exitCode}:');
+         debugPrint('Stderr: ${cliphistResult.stderr}');
+         return;
+       }
 
-      debugPrint('Inhalt von Eintrag ID $cliphistCode erfolgreich in die Zwischenablage kopiert.');
-    } catch (e) {
-      debugPrint('Fehler beim Kopieren des Zwischenablage-Eintrags: $e');
-    }
-  }
+       final copyString = (cliphistResult.stdout as String).trim();
+
+       if (copyString.isEmpty) {
+         debugPrint('Warnung: cliphist hat einen leeren String zurückgegeben.');
+         return;
+       }
+
+       //
+       // Schritt 2: Den String mit `wl-copy` über dessen stdin kopieren.
+       // Hierfür verwenden wir Process.start.
+       //
+       final process = await Process.start('wl-copy', []);
+
+       // Den String in die Standardeingabe des wl-copy-Prozesses schreiben.
+       process.stdin.write(copyString);
+
+       // SEHR WICHTIG: Den stdin-Stream schließen.
+       // `wl-copy` wartet darauf, dass die Eingabe beendet wird (EOF-Signal).
+       // Ohne .close() würde der Prozess ewig auf weitere Eingaben warten.
+       // Dies ist höchstwahrscheinlich die Ursache für Ihr ursprüngliches Problem!
+       await process.stdin.close();
+
+       // Warten, bis der Prozess beendet ist und den Exit-Code prüfen.
+       final exitCode = await process.exitCode;
+
+       if (exitCode != 0) {
+         // Um stderr zu bekommen, müssen wir es aus dem Stream lesen.
+         final errorOutput = await process.stderr.transform(utf8.decoder).join();
+         debugPrint('Fehler: wl-copy fehlgeschlagen mit Exit-Code $exitCode:');
+         debugPrint('Stderr: $errorOutput');
+         return;
+       }
+
+       debugPrint('Inhalt von Eintrag ID $cliphistCode erfolgreich in die Zwischenablage kopiert.');
+
+     } catch (e) {
+       debugPrint('Fehler beim Kopieren des Zwischenablage-Eintrags: $e');
+     }
+   }
 
   /// Filtert eine Liste von [CliphistEntry]-Objekten basierend auf einem Suchbegriff.
   ///

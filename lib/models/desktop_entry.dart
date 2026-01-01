@@ -3,9 +3,13 @@ library;
 //
 // Flutter packages
 //
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:launch_searcher/models/global_data.dart';
+import 'package:path/path.dart' as p;
+import 'package:crypto/crypto.dart';
 //
 // pub.dev packages
 //
@@ -26,7 +30,7 @@ class DesktopEntry {
   // Privater Konstruktor, der über die asynchrone Factory `fromFile` aufgerufen wird.
   DesktopEntry._({required this.name, required this.iconWidget, required this.exec, required this.filePath});
 
-  /// 
+  ///
   /// Startet die Anwendung, die durch den 'exec'-Befehl definiert ist.
   /// Platzhalter wie %U, %f etc. werden aus dem Befehl entfernt.
   ///
@@ -149,16 +153,71 @@ class DesktopEntry {
 
     for (final path in searchPaths) {
       // Suche mit gängigen Erweiterungen, bevorzuge Vektorgrafiken
-      for (final ext in ['.svg', '.png', '.xpm']) {
+      for (final ext in ['.svg', '.png', '.xpm', '']) {
         final file = File('$path/$iconName$ext');
-        if (await file.exists()) {
+        final fileWithoutExt = File('$path/$iconName.svg');
+        if (await fileWithoutExt.exists()) {
+          return SvgPicture.file(
+            File('$path/$iconName.svg'),
+            width: size,
+            height: size,
+            fit: BoxFit.contain,
+            placeholderBuilder: (context) => Icon(Icons.apps, size: size), // Platzhalter während des Ladens
+          );
+        } else if (await file.exists()) {
           if (ext == '.svg') {
-            // WICHTIG: Flutter benötigt ein Paket wie `flutter_svg`, um SVGs anzuzeigen.
-            // return SvgPicture.file(file, width: size, height: size);
-            return Tooltip(
-              message: 'SVG Icon: ${file.path}\n(Benötigt das flutter_svg Paket)',
-              child: Icon(Icons.image_not_supported, size: size),
+            return SvgPicture.file(
+              file,
+              width: size,
+              height: size,
+              fit: BoxFit.contain,
+              placeholderBuilder: (context) => Icon(Icons.apps, size: size), // Platzhalter während des Ladens
             );
+          } else if (ext == '.xpm') {
+            // --- NEUE LOGIK FÜR XPM-DATEIEN ---
+            try {
+              // 1. Cache-Verzeichnis definieren (z.B. im Projektordner)
+              final cacheDir = Directory(p.join('.dart_tool', 'xpm_icon_cache'));
+              if (!await cacheDir.exists()) {
+                await cacheDir.create(recursive: true);
+              }
+
+              // 2. Eindeutigen Dateinamen für das gecachte PNG erstellen
+              final hash = sha1.convert(utf8.encode(file.path)).toString();
+              final pngFile = File(p.join(cacheDir.path, '$hash.png'));
+
+              // 3. Prüfen, ob die konvertierte Datei bereits im Cache liegt
+              if (await pngFile.exists()) {
+                return Image.file(
+                  pngFile,
+                  width: size,
+                  height: size,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) => Icon(Icons.error, size: size),
+                );
+              }
+
+              // 4. Wenn nicht im Cache: Konvertiere mit ImageMagick
+              final result = await Process.run('convert', [file.path, pngFile.path]);
+
+              // 5. Prüfe, ob die Konvertierung erfolgreich war
+              if (result.exitCode == 0 && await pngFile.exists()) {
+                return Image.file(
+                  pngFile,
+                  width: size,
+                  height: size,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) => Icon(Icons.error, size: size),
+                );
+              } else {
+                // Wenn 'convert' fehlschlägt, zeige ein Fehler-Icon
+                print("ImageMagick-Fehler bei Konvertierung von ${file.path}: ${result.stderr}");
+                return Icon(Icons.broken_image, size: size);
+              }
+            } catch (e) {
+              print("Fehler bei der XPM-Verarbeitung: $e");
+              return Icon(Icons.error, size: size);
+            }
           } else {
             return Image.file(
               file,
@@ -173,10 +232,10 @@ class DesktopEntry {
     }
 
     // 3. Wenn kein Icon gefunden wurde, ein Standard-Icon zurückgeben
-    return Icon(Icons.apps, size: size, color: GlobalData().walColors!.special.foreground,);
+    return Icon(Icons.apps, size: size, color: GlobalData().walColors!.special.foreground);
   }
 
-  /// 
+  ///
   /// Beispiel für das Filtern einer Liste von DesktopEntry-Objekten.
   ///
   static List<DesktopEntry> filterDesktopEntries(List<DesktopEntry> allApps, String searchTerm) {
@@ -185,11 +244,11 @@ class DesktopEntry {
       debugPrint('Suchbegriff ist leer. Zeige alle ${allApps.length} Apps.');
       // return allApps;
     }
-    // 
+    //
     // Konvertiere den Suchbegriff in Kleinbuchstaben für eine case-insensitive Suche
     //
     final lowerCaseSearchTerm = searchTerm.toLowerCase();
-    // 
+    //
     // Filtere die Liste
     //
     final filteredApps = allApps.where((app) {
@@ -198,5 +257,4 @@ class DesktopEntry {
     }).toList(); // Wichtig: .toList() um ein neues List-Objekt zu erhalten
     return filteredApps;
   }
-
 }
