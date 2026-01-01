@@ -1,11 +1,13 @@
 library;
-// 
+
+//
 // Flutter packages
 //
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:launch_searcher/models/contact_entry.dart';
+import 'package:launch_searcher/models/contact_email_entry.dart';
+import 'package:launch_searcher/models/contact_telephone_entry.dart';
 import 'package:launch_searcher/models/desktop_entry.dart';
 //
 // pub.dev packages
@@ -30,7 +32,6 @@ Map<String, SearchProvider> searchPrefix = {
   'e': SearchProvider.emoji,
 };
 
-
 //
 // singleton instance of GlobalData
 //
@@ -52,18 +53,19 @@ class GlobalData {
 
   GlobalData._internal();
   // --- Ende Singleton ---
-  
 
   //
   // search result items
   //
   // apps
-  List<DesktopEntry> desktopEntries = []; 
-  DesktopEntry? selectedDesktopEntry; 
+  List<DesktopEntry> desktopEntries = [];
+  DesktopEntry? selectedDesktopEntry;
   // contact data
-  List<ContactEntry> contactEntries = [];
-  ContactEntry? selectedContactEntry;
-  
+  List<ContactTelephoneEntry> contactTelephoneEntries = [];
+  ContactTelephoneEntry? selectedContactTelephoneEntry;
+  List<ContactEmailEntry> contactEmailEntries = [];
+  ContactEmailEntry? selectedContactEmailEntry;
+
   /// Lädt das Pywal-Farbthema aus der `colors.json`-Datei.
   ///
   /// Diese Methode sollte einmal beim Start der App aufgerufen werden,

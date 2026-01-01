@@ -31,7 +31,6 @@ class DesktopEntry {
   /// Platzhalter wie %U, %f etc. werden aus dem Befehl entfernt.
   ///
   Future<void> launch() async {
-    debugPrint('debugPrint: launch');
     // Die Exec-Variable kann Codes wie %U, %F, %f usw. enthalten.
     // Für einen einfachen Start entfernen wir diese vor der Ausführung.
     final command = exec.replaceAll(RegExp(r'\%[UuFfIiCcKk]'), '').trim();

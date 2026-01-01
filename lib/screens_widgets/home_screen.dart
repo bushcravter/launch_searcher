@@ -5,7 +5,6 @@ library;
 //
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:launch_searcher/models/contact_entry.dart';
 //
 // pub.dev packages
 //
@@ -28,6 +27,10 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   //
+  // focus for search input and search resulta
+  //
+  bool searchResultFocusNode = false;
+  //
   // search provider from PrefixedSearchField
   //
   SearchProvider _inputProvider = SearchProvider.app;
@@ -35,27 +38,38 @@ class _HomePageState extends State<HomePage> {
   // search string from PrefixedSearchField
   //
   String _inputSearchString = '';
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   //
   // submit function
   //
-  void searchSubmitted(String inputSearchString) async {
+  void _searchSubmitted(String inputSearchString) async {
     //
     // launch always the first entry, if the search string is submitted
     //
     switch (_inputProvider) {
       case SearchProvider.app:
-        // 
+        //
         // start the first app and close the launchSearcher
         //
         await globalData.desktopEntries[0].launch();
         exit(0);
       case SearchProvider.telephone:
-        // 
+        //
         // start the first telephone and close the launchSearcher
         //
-        await globalData.contactEntries[0].launch(typEntry: TypeEntry.telephone);
+        await globalData.contactTelephoneEntries[0].launch();
         exit(0);
       case SearchProvider.mail:
+         //
+        // start the first email and close the launchSearcher
+        //
+        await globalData.contactEmailEntries[0].launch();
+        exit(0);
       case SearchProvider.clipboard:
       case SearchProvider.emoji:
         break;
@@ -76,7 +90,7 @@ class _HomePageState extends State<HomePage> {
       body: Column(
         children: [
           PrefixedSearchField(
-            onSubmitted: searchSubmitted,
+            onSubmitted: _searchSubmitted,
             onSearchChanged: (SearchProvider provider, String searchTerm) {
               //
               // input search provider
@@ -96,13 +110,13 @@ class _HomePageState extends State<HomePage> {
                 SearchProvider.app: (term) {
                   return AppLauncherWidget(searchTerm: term);
                 },
-                 SearchProvider.telephone: (term) {
+                SearchProvider.telephone: (term) {
                   return TelephoneLauncherWidget(searchTerm: term);
                 },
-                  SearchProvider.mail: (term) {
+                SearchProvider.mail: (term) {
                   return MailLauncherWidget(searchTerm: term);
                 },
-             },
+              },
               currentProvider: _inputProvider,
               searchTerm: _inputSearchString,
             ),

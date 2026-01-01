@@ -3,7 +3,10 @@ library;
 //
 // Flutter packages
 //
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 //
 // pub.dev packages
 //
@@ -85,48 +88,64 @@ class _PrefixedSearchFieldState extends State<PrefixedSearchField> {
     widget.onSearchChanged(provider, searchTerm);
   }
 
+  //
+  // Diese Methode wird bei jedem Tastendruck aufgerufen
+  //
+  void _handleKeyEvent(KeyEvent event) {
+    if (event is KeyDownEvent) {
+      //
+      // close LaunchSearcher if ESC is pressed
+      //
+      if (event.logicalKey == LogicalKeyboardKey.escape) {
+        exit(0);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // 
+    //
     // Greife auf die geladenen WalColors zu, mit Fallback für den Fall, dass sie null sind.
     //
     final walColors = GlobalData().walColors;
     final defaultBackgroundColor = walColors?.special.background ?? Colors.grey[850];
     final defaultForegroundColor = walColors?.special.foreground ?? Colors.white;
     final defaultHintColor = defaultForegroundColor;
-    // 
+    //
     // return widget
     //
-    return TextField(
-      onSubmitted: widget.onSubmitted,
-      controller: _controller,
-      focusNode: widget.focusNode,
-      autofocus: true,
-      style: TextStyle(color: defaultForegroundColor),
-      decoration:
-          widget.decoration ??
-          InputDecoration(
-            // HINZUFÜGEN: Hintergrundfarbe des Textfeldes
-            filled: true, // Muss true sein, damit fillColor funktioniert
-            fillColor: defaultBackgroundColor,
+    return KeyboardListener(
+      focusNode: widget.focusNode ?? FocusNode(),
+      onKeyEvent: _handleKeyEvent,
+      child: TextField(
+        onSubmitted: widget.onSubmitted,
+        controller: _controller,
+        focusNode: widget.focusNode,
+        autofocus: true,
+        style: TextStyle(color: defaultForegroundColor),
+        decoration:
+            widget.decoration ??
+            InputDecoration(
+              // HINZUFÜGEN: Hintergrundfarbe des Textfeldes
+              filled: true, // Muss true sein, damit fillColor funktioniert
+              fillColor: defaultBackgroundColor,
 
-            // HINZUFÜGEN: Farbe des Hint-Textes
-            hintText: 'Suche nach Apps, Mails, Kontakten...',
-            hintStyle: TextStyle(color: defaultHintColor),
-            // Die anderen Dekorationen bleiben gleich
-            border: const OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(0.0)),
-              borderSide: BorderSide.none, // Optional: keine sichtbare Umrandung
-            ),
-            // Setzt die Farbe für den Fokusrahmen, falls vorhanden (z.B. bei OutlineInputBorder)
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: walColors?.normal.color4 ?? Colors.blue, width: 2.0),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: defaultBackgroundColor!, width: 0.0), // Gleiche Farbe wie Hintergrund
-            ),
-            contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
-          ), // Weitere Konfigurationen wie autofocus, style etc. können hier hinzugefügt werden.
+              // HINZUFÜGEN: Farbe des Hint-Textes
+              hintText: 'Suche nach Apps, Mails, Kontakten...',
+              hintStyle: TextStyle(color: defaultHintColor),
+              // Die anderen Dekorationen bleiben gleich
+              border: const OutlineInputBorder(
+                borderRadius: BorderRadius.all(Radius.circular(0.0)),
+                borderSide: BorderSide.none, // Optional: keine sichtbare Umrandung
+              ),
+              // Setzt die Farbe für den Fokusrahmen, falls vorhanden (z.B. bei OutlineInputBorder)
+              focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: walColors?.normal.color4 ?? Colors.blue, width: 2.0)),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: defaultBackgroundColor!, width: 0.0), // Gleiche Farbe wie Hintergrund
+              ),
+              contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
+            ), // Weitere Konfigurationen wie autofocus, style etc. können hier hinzugefügt werden.
+      ),
     );
   }
 }

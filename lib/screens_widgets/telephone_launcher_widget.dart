@@ -5,7 +5,8 @@ library;
 //
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:launch_searcher/models/contact_entry.dart';
+import 'package:flutter/services.dart';
+import 'package:launch_searcher/models/contact_telephone_entry.dart';
 import 'package:launch_searcher/models/global_data.dart';
 
 class TelephoneLauncherWidget extends StatefulWidget {
@@ -24,17 +25,31 @@ class TelephoneLauncherWidget extends StatefulWidget {
 }
 
 class _TelephoneLauncherWidgetState extends State<TelephoneLauncherWidget> {
-  late Future<List<ContactEntry>> _contactsFuture;
+  late Future<List<ContactTelephoneEntry>> _contactsFuture;
 
   @override
   void initState() {
     super.initState();
-    _contactsFuture = ContactEntry.fromVcfFile('/home/volker/Dokumente/Adressen/contacts.vcf');
+    _contactsFuture = ContactTelephoneEntry.fromVcfFile('/home/volker/Dokumente/Adressen/contacts.vcf');
+  }
+
+  //
+  // Diese Methode wird bei jedem Tastendruck aufgerufen
+  //
+  void _handleKeyEvent(KeyEvent event) {
+    if (event is KeyDownEvent) {
+      //
+      // close LaunchSearcher if ESC is pressed
+      //
+      if (event.logicalKey == LogicalKeyboardKey.escape) {
+        exit(0);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<ContactEntry>>(
+    return FutureBuilder<List<ContactTelephoneEntry>>(
       future: _contactsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -44,45 +59,48 @@ class _TelephoneLauncherWidgetState extends State<TelephoneLauncherWidget> {
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const Center(child: Text('Keine Anwendungen gefunden.'));
         }
-
-        globalData.contactEntries = snapshot.data!;
-        globalData.contactEntries = ContactEntry.filterContactEntries(globalData.contactEntries, widget.searchTerm);
-        return ListView.builder(
-          itemCount: globalData.contactEntries.length,
-          itemBuilder: (context, index) {
-            //
-            // set the selected contact entry
-            //
-            globalData.selectedContactEntry = globalData.contactEntries[index];
-            //
-            // return the list tiles
-            //
-            return ListTile(
-              selected: index == widget.selectedIndex,
-              focusColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
-              selectedTileColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
-              selectedColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
-              hoverColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
-              tileColor: GlobalData().walColors!.special.background,
-              splashColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
-              title: Text(
-                globalData.contactEntries[index].name,
-                style: TextStyle(color: GlobalData().walColors!.special.foreground, fontWeight: FontWeight.bold),
-              ),
-              subtitle: Text(globalData.contactEntries[index].phoneNumber ?? '', style: TextStyle(color: GlobalData().walColors!.special.foreground)),
-              onTap: () async {
-                //
-                // start the app
-                //
-                await globalData.contactEntries[index].launch(typEntry: TypeEntry.telephone);
-
-                //
-                // close the LaunchSearcher
-                //
-                exit(0);
-              },
-            );
-          },
+        globalData.contactTelephoneEntries = snapshot.data!;
+        globalData.contactTelephoneEntries = ContactTelephoneEntry.filterContactEntries(globalData.contactTelephoneEntries, widget.searchTerm);
+        return KeyboardListener(
+          focusNode: FocusNode(),
+          onKeyEvent: _handleKeyEvent,
+          child: ListView.builder(
+            itemCount: globalData.contactTelephoneEntries.length,
+            itemBuilder: (context, index) {
+              //
+              // set the selected contact entry
+              //
+              globalData.selectedContactTelephoneEntry = globalData.contactTelephoneEntries[index];
+              //
+              // return the list tiles
+              //
+              return ListTile(
+                selected: index == widget.selectedIndex,
+                focusColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
+                selectedTileColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
+                selectedColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
+                hoverColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
+                tileColor: GlobalData().walColors!.special.background,
+                splashColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
+                title: Text(
+                  globalData.contactTelephoneEntries[index].name,
+                  style: TextStyle(color: GlobalData().walColors!.special.foreground, fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(globalData.contactTelephoneEntries[index].phoneNumber ?? '', style: TextStyle(color: GlobalData().walColors!.special.foreground)),
+                onTap: () async {
+                  //
+                  // start the app
+                  //
+                  await globalData.contactTelephoneEntries[index].launch();
+          
+                  //
+                  // close the LaunchSearcher
+                  //
+                  exit(0);
+                },
+              );
+            },
+          ),
         );
       },
     );
