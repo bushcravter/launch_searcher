@@ -10,6 +10,8 @@ import 'package:launch_searcher/models/cliphist_entry.dart';
 import 'package:launch_searcher/models/contact_email_entry.dart';
 import 'package:launch_searcher/models/contact_telephone_entry.dart';
 import 'package:launch_searcher/models/desktop_entry.dart';
+import 'package:launch_searcher/models/emoji_entry.dart';
+import 'package:launch_searcher/models/file_entry.dart';
 //
 // pub.dev packages
 //
@@ -20,7 +22,7 @@ import 'package:launch_searcher/models/desktop_entry.dart';
 //
 // search provider for the home screen
 //
-enum SearchProvider { app, mail, telephone, clipboard, emoji }
+enum SearchProvider { app, mail, telephone, clipboard, emoji, file }
 
 //
 // search prefix with corresponding search provider
@@ -31,13 +33,13 @@ Map<String, SearchProvider> searchPrefix = {
   't': SearchProvider.telephone,
   'c': SearchProvider.clipboard,
   'e': SearchProvider.emoji,
+  'f': SearchProvider.file,
 };
 
 //
 // singleton instance of GlobalData
 //
 GlobalData globalData = GlobalData();
-
 //
 // data class
 //
@@ -70,7 +72,17 @@ class GlobalData {
   // cliphistory data
   //
   List<CliphistEntry> cliphistEntries = [];
-  CliphistEntry? selectedCliphistEntry; 
+  CliphistEntry? selectedCliphistEntry;
+  //
+  // emoji data
+  //
+  List<EmojiEntry> emojiEntries = [];
+  EmojiEntry? selectedEmojiEntry;
+  //
+  // file data
+  //
+  List<FileEntry> fileEntries = [];
+  FileEntry? selectedFileEntry;
 
   /// Lädt das Pywal-Farbthema aus der `colors.json`-Datei.
   ///

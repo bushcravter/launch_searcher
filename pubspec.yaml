@@ -38,6 +38,7 @@ dependencies:
   flutter_contacts: ^1.1.9+2
   flutter_svg: ^2.2.3
   crypto: ^3.0.7
+  emojis: ^0.9.9
 
 dev_dependencies:
   flutter_test:

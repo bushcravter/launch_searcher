@@ -57,7 +57,7 @@ class ContactEmailEntry {
   /// Kann null sein, wenn keine E-Mail-Adresse vorhanden ist.
   ///
   String? get emailLaunchString {
-    return 'aerc_new_mail $emailAddress';
+    return 'new_mail $emailAddress';
   }
 
   ///

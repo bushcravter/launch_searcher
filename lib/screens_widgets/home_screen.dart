@@ -14,6 +14,8 @@ import 'package:flutter/material.dart';
 import 'package:launch_searcher/models/global_data.dart';
 import 'package:launch_searcher/screens_widgets/app_launcher_widget.dart';
 import 'package:launch_searcher/screens_widgets/cliphist_launcher_widget.dart';
+import 'package:launch_searcher/screens_widgets/emoji_launcher_widget.dart';
+import 'package:launch_searcher/screens_widgets/file_launcher_widget.dart';
 import 'package:launch_searcher/screens_widgets/mail_launcher_widget.dart';
 import 'package:launch_searcher/screens_widgets/prefixed_search_field.dart';
 import 'package:launch_searcher/screens_widgets/telephone_launcher_widget.dart';
@@ -21,12 +23,15 @@ import 'package:launch_searcher/utils/search_provider_content.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
-
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
+  //
+  // title string
+  //
+  String titleString = 'Anwendungen';
   //
   // search provider from PrefixedSearchField
   //
@@ -82,7 +87,17 @@ class _HomePageState extends State<HomePage> {
         await globalData.cliphistEntries[0].launch();
         exit(0);
       case SearchProvider.emoji:
-        break;
+        //
+        // start the emoji entry and close the launchSearcher
+        //
+        await globalData.emojiEntries[0].launch();
+        exit(0);
+      case SearchProvider.file:
+        //
+        // start the file entry and close the launchSearcher
+        //
+        await globalData.fileEntries[0].launch();
+        exit(0);
     }
   }
 
@@ -103,7 +118,7 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: GlobalData().walColors!.special.background,
       appBar: AppBar(
         backgroundColor: GlobalData().walColors!.special.background,
-        title: Text("Launch Searcher App", style: TextStyle(color: GlobalData().walColors!.special.foreground)),
+        title: Text(titleString, style: TextStyle(color: GlobalData().walColors!.special.foreground)),
       ),
       body: Column(
         children: [
@@ -111,6 +126,26 @@ class _HomePageState extends State<HomePage> {
             onSubmitted: _searchSubmitted,
             focusResult: _focusResult,
             onSearchChanged: (SearchProvider provider, String searchTerm) {
+              switch (provider) {
+                case SearchProvider.app:
+                  titleString = '󰙵   Anwendungen';
+                  break;
+                case SearchProvider.mail:
+                  titleString = '󰺻   E-Mail';
+                  break;
+                case SearchProvider.telephone:
+                  titleString = '   Telefon';
+                  break;
+                case SearchProvider.clipboard:
+                  titleString = '   Zwischenablage';
+                  break;
+                case SearchProvider.emoji:
+                  titleString = '󰞅   Emojis';
+                  break;
+                case SearchProvider.file:
+                  titleString = '   Dateien';
+                  break;
+              }
               //
               // input search provider
               //
@@ -137,6 +172,12 @@ class _HomePageState extends State<HomePage> {
                 },
                 SearchProvider.clipboard: (term) {
                   return CliphistLauncherWidget(searchTerm: term, clipSearcherFocus: searcherFocusNode);
+                },
+                SearchProvider.emoji: (term) {
+                  return EmojiLauncherWidget(searchTerm: term, emojiSearcherFocus: searcherFocusNode);
+                },
+                SearchProvider.file: (term) {
+                  return FileLauncherWidget(searchTerm: term, fileSearcherFocus: searcherFocusNode);
                 },
               },
               currentProvider: _inputProvider,
