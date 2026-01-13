@@ -3,13 +3,10 @@ library;
 //
 // Flutter packages
 //
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:launch_searcher/models/global_data.dart';
-import 'package:path/path.dart' as p;
-import 'package:crypto/crypto.dart';
 //
 // pub.dev packages
 //
@@ -52,9 +49,9 @@ class DesktopEntry {
         runInShell: true, // runInShell hilft, Befehle im System-PATH zu finden
         mode: ProcessStartMode.detached,
       );
-      debugPrint('Anwendung gestartet: $command');
+      debugPrint('Anwendung gestartet: $name $command $arguments');
     } catch (e) {
-      debugPrint('Fehler beim Starten von "$command": $e');
+      debugPrint('Fehler beim Starten von "$name $command": $e');
       // Hier könnten Sie dem Benutzer eine Fehlermeldung anzeigen.
     }
   }
@@ -70,24 +67,13 @@ class DesktopEntry {
       String? name;
       String? icon;
       String? exec;
-      bool inDesktopEntrySection = false;
 
       // Einfaches Parsen der .desktop-Datei
       for (final line in lines) {
-        if (line.trim() == '[Desktop Entry]') {
-          inDesktopEntrySection = true;
-          continue;
-        }
-        if (line.trim().startsWith('[')) {
-          // Stoppt das Parsen, wenn eine neue Sektion beginnt
-          break;
-        }
-
-        if (inDesktopEntrySection && line.contains('=')) {
+        if (line.contains('=')) {
           final parts = line.split('=');
           final key = parts[0].trim();
           final value = parts.sublist(1).join('=').trim();
-
           switch (key) {
             case 'Name':
               name ??= value;
@@ -138,8 +124,6 @@ class DesktopEntry {
       }
     }
 
-    // 2. Wenn es kein Pfad ist, nach dem Icon-Namen suchen
-    final iconName = iconNameOrPath.split('.').first;
     // Vereinfachte Suche in Standard-Icon-Verzeichnissen.
     // Eine vollständige Implementierung würde die `index.theme`-Dateien parsen.
     final searchPaths = [
@@ -153,17 +137,21 @@ class DesktopEntry {
 
     for (final path in searchPaths) {
       // Suche mit gängigen Erweiterungen, bevorzuge Vektorgrafiken
-      for (final ext in ['.svg', '.png', '.xpm', '']) {
-        final file = File('$path/$iconName$ext');
-        final fileWithoutExt = File('$path/$iconName.svg');
-        if (await fileWithoutExt.exists()) {
-          return SvgPicture.file(
-            File('$path/$iconName.svg'),
-            width: size,
-            height: size,
-            fit: BoxFit.contain,
-            placeholderBuilder: (context) => Icon(Icons.apps, size: size), // Platzhalter während des Ladens
-          );
+      for (final ext in ['.svg', '.png', '']) {
+        final file = File('$path/$iconNameOrPath$ext');
+        final fileWithoutExt = File('$path/$iconNameOrPath.svg');
+        if ((ext == '') && (await fileWithoutExt.exists())) {
+          try {
+            return SvgPicture.file(
+              File('$path/$iconNameOrPath.svg'),
+              width: size,
+              height: size,
+              fit: BoxFit.contain,
+              placeholderBuilder: (context) => Icon(Icons.apps, size: size), // Platzhalter während des Ladens
+            );
+          } catch (error) {
+            debugPrint('debugPrint: ${error.toString()}');
+          }
         } else if (await file.exists()) {
           if (ext == '.svg') {
             return SvgPicture.file(
@@ -173,51 +161,6 @@ class DesktopEntry {
               fit: BoxFit.contain,
               placeholderBuilder: (context) => Icon(Icons.apps, size: size), // Platzhalter während des Ladens
             );
-          } else if (ext == '.xpm') {
-            // --- NEUE LOGIK FÜR XPM-DATEIEN ---
-            try {
-              // 1. Cache-Verzeichnis definieren (z.B. im Projektordner)
-              final cacheDir = Directory(p.join('.dart_tool', 'xpm_icon_cache'));
-              if (!await cacheDir.exists()) {
-                await cacheDir.create(recursive: true);
-              }
-
-              // 2. Eindeutigen Dateinamen für das gecachte PNG erstellen
-              final hash = sha1.convert(utf8.encode(file.path)).toString();
-              final pngFile = File(p.join(cacheDir.path, '$hash.png'));
-
-              // 3. Prüfen, ob die konvertierte Datei bereits im Cache liegt
-              if (await pngFile.exists()) {
-                return Image.file(
-                  pngFile,
-                  width: size,
-                  height: size,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) => Icon(Icons.error, size: size),
-                );
-              }
-
-              // 4. Wenn nicht im Cache: Konvertiere mit ImageMagick
-              final result = await Process.run('convert', [file.path, pngFile.path]);
-
-              // 5. Prüfe, ob die Konvertierung erfolgreich war
-              if (result.exitCode == 0 && await pngFile.exists()) {
-                return Image.file(
-                  pngFile,
-                  width: size,
-                  height: size,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) => Icon(Icons.error, size: size),
-                );
-              } else {
-                // Wenn 'convert' fehlschlägt, zeige ein Fehler-Icon
-                print("ImageMagick-Fehler bei Konvertierung von ${file.path}: ${result.stderr}");
-                return Icon(Icons.broken_image, size: size);
-              }
-            } catch (e) {
-              print("Fehler bei der XPM-Verarbeitung: $e");
-              return Icon(Icons.error, size: size);
-            }
           } else {
             return Image.file(
               file,
@@ -255,7 +198,7 @@ class DesktopEntry {
       // Prüfe, ob der Name der App den Suchbegriff enthält (case-insensitive)
       return app.name.toLowerCase().contains(lowerCaseSearchTerm);
     }).toList(); // Wichtig: .toList() um ein neues List-Objekt zu erhalten
-    // 
+    //
     // sortiere die Liste
     //
     filteredApps.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));

@@ -12,16 +12,15 @@ import 'package:launch_searcher/models/global_data.dart';
 import 'package:launch_searcher/utils/desktop_app_finder.dart';
 
 class AppLauncherWidget extends StatefulWidget {
-  const AppLauncherWidget({super.key, required this.searchTerm,  this.appSearcherFocus = false});
+  const AppLauncherWidget({super.key, required this.searchTerm, this.appSearcherFocus = false});
   //
   // input of the search term
   //
   final String searchTerm;
-
   //
-  // bool focus 
+  // bool focus
   //
-  final appSearcherFocus;
+  final bool appSearcherFocus;
 
   @override
   State<AppLauncherWidget> createState() => _AppLauncherWidgetState();
@@ -102,28 +101,32 @@ class _AppLauncherWidgetState extends State<AppLauncherWidget> {
               //
               // return the list tiles
               //
-              return ListTile(
-                focusNode: listFocusNodes[index],
-                selected: listFocusNodes[index].hasFocus,
-                focusColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
-                selectedTileColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
-                selectedColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
-                hoverColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
-                tileColor: GlobalData().walColors!.special.background,
-                splashColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
-                leading: globalData.desktopEntries[index].iconWidget,
-                title: Text(globalData.desktopEntries[index].name, style: TextStyle(color: GlobalData().walColors!.special.foreground)),
-                onTap: () async {
-                  //
-                  // start the app
-                  //
-                  await globalData.desktopEntries[index].launch();
-
-                  //
-                  // close the LaunchSearcher
-                  //
-                  exit(0);
-                },
+              return Column(
+                children: [
+                  ListTile(
+                    focusNode: listFocusNodes[index],
+                    selected: listFocusNodes[index].hasFocus,
+                    focusColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
+                    selectedTileColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
+                    selectedColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
+                    tileColor: GlobalData().walColors!.special.background,
+                    splashColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
+                    leading: globalData.desktopEntries[index].iconWidget,
+                    title: Text(globalData.desktopEntries[index].name, style: TextStyle(color: GlobalData().walColors!.special.foreground)),
+                    onTap: () async {
+                      //
+                      // start the app
+                      //
+                      await globalData.desktopEntries[index].launch();
+                  
+                      //
+                      // close the LaunchSearcher
+                      //
+                      exit(0);
+                    },
+                  ),
+                  SizedBox(height: 5,),
+                ],
               );
             },
           ),

@@ -104,8 +104,8 @@ class _HomePageState extends State<HomePage> {
   //
   // focus for result
   //
-  void _focusResult() {
-    searcherFocusNode = !searcherFocusNode;
+  void _focusResultSet() {
+    searcherFocusNode = true;
     setState(() {});
   }
 
@@ -124,7 +124,7 @@ class _HomePageState extends State<HomePage> {
         children: [
           PrefixedSearchField(
             onSubmitted: _searchSubmitted,
-            focusResult: _focusResult,
+            focusResult: _focusResultSet,
             onSearchChanged: (SearchProvider provider, String searchTerm) {
               switch (provider) {
                 case SearchProvider.app:

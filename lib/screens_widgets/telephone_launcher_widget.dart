@@ -17,7 +17,7 @@ class TelephoneLauncherWidget extends StatefulWidget {
   //
   final String searchTerm;
   //
-  // focus result 
+  // focus result
   //
   final bool telephoneSearcherFocus;
   @override
@@ -65,13 +65,13 @@ class _TelephoneLauncherWidgetState extends State<TelephoneLauncherWidget> {
         }
         globalData.contactTelephoneEntries = snapshot.data!;
         globalData.contactTelephoneEntries = ContactTelephoneEntry.filterContactEntries(globalData.contactTelephoneEntries, widget.searchTerm);
-         for (int kindex = 0; kindex < globalData.contactTelephoneEntries.length; kindex++) {
+        for (int kindex = 0; kindex < globalData.contactTelephoneEntries.length; kindex++) {
           listFocusNodes.add(FocusNode());
         }
         if (widget.telephoneSearcherFocus) {
           listFocusNodes[0].requestFocus();
         }
-       return KeyboardListener(
+        return KeyboardListener(
           focusNode: FocusNode(),
           onKeyEvent: _handleKeyEvent,
           child: ListView.builder(
@@ -84,31 +84,38 @@ class _TelephoneLauncherWidgetState extends State<TelephoneLauncherWidget> {
               //
               // return the list tiles
               //
-              return ListTile(
-                focusNode: listFocusNodes[index],
-                selected: listFocusNodes[index].hasFocus,
-                focusColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
-                selectedTileColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
-                selectedColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
-                hoverColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
-                tileColor: GlobalData().walColors!.special.background,
-                splashColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
-                title: Text(
-                  globalData.contactTelephoneEntries[index].name,
-                  style: TextStyle(color: GlobalData().walColors!.special.foreground, fontWeight: FontWeight.bold),
-                ),
-                subtitle: Text(globalData.contactTelephoneEntries[index].phoneNumber ?? '', style: TextStyle(color: GlobalData().walColors!.special.foreground)),
-                onTap: () async {
-                  //
-                  // start the app
-                  //
-                  await globalData.contactTelephoneEntries[index].launch();
-          
-                  //
-                  // close the LaunchSearcher
-                  //
-                  exit(0);
-                },
+              return Column(
+                children: [
+                  ListTile(
+                    focusNode: listFocusNodes[index],
+                    selected: listFocusNodes[index].hasFocus,
+                    focusColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
+                    selectedTileColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
+                    selectedColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
+                    tileColor: GlobalData().walColors!.special.background,
+                    splashColor: GlobalData().walColors?.normal.color4.withValues(alpha: 0.3) ?? Colors.blueGrey.withValues(alpha: 0.3),
+                    title: Text(
+                      globalData.contactTelephoneEntries[index].name,
+                      style: TextStyle(color: GlobalData().walColors!.special.foreground, fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      globalData.contactTelephoneEntries[index].phoneNumber ?? '',
+                      style: TextStyle(color: GlobalData().walColors!.special.foreground),
+                    ),
+                    onTap: () async {
+                      //
+                      // start the app
+                      //
+                      await globalData.contactTelephoneEntries[index].launch();
+
+                      //
+                      // close the LaunchSearcher
+                      //
+                      exit(0);
+                    },
+                  ),
+                  SizedBox(height: 8),
+                ],
               );
             },
           ),
